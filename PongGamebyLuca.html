@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello World</title>
+</head>
+<body>
+    <canvas id="canvas" width="400" height="400" style="border:1px rgb(64, 38, 198)" tabindex="1"></canvas>
+    <script>
+            var x=200;
+            var y=0;
+            var xSpeed=0;
+            var ySpeed=0;
+            var player1Down=false;
+            var player1Up=false;
+            var player2Down=false;
+            var player2Up=false;
+            var yPositionPlayer1=250;
+            var yPositionPlayer2=250;
+            var gamePaused=true;
+            var player2Score=0;
+            var player1Score=0;
+            var randomNumber;
+            var ctx;
+
+            function init() {
+                ctx = document.getElementById('canvas').getContext('2d');
+                resetBall();
+                requestAnimationFrame(draw);
+            }
+
+            function keyPressed(event) {
+                if (event.keyCode === 83) {//if key "s" is pressed then player1Down is true
+                    player1Down=true; 
+                }
+                if (event.keyCode === 87) {//if key "w" is pressed then player1Up is true
+                    player1Up=true;
+                } 
+                if (event.keyCode === 38) {//if UP button is pressed then player2Up is true
+                    player2Up=true;
+                }
+                if(event.keyCode === 40) {//if DOWN button is pressed then player2Down is true
+                    player2Down=true;    
+                }
+                if(gamePaused&&event.keyCode === 32){//if the game is paused and space bar is selected 
+                    xSpeed=4;
+                    ySpeed=4;
+                    randomNumber=Date.now();//find the current time in miliseconds
+                    randomNumber=randomNumber%4;//modulus that number by four and get 1 or 4 outputs: 0, 1, 2, 3
+                    //for each of the outputs make the ball go in a different direction
+                    if(randomNumber===0){
+                        xSpeed=-4;
+                    }else if(randomNumber===1){
+                        xSpeed=-4;
+                    }else if(randomNumber===2){
+                        ySpeed=-4;
+                    } 
+                    gamePaused=false;//set game paused boolean to false
+                }    
+            };
+
+            function keyReleased(event) {
+                if (event.keyCode === 83) {//if "s" button is released then player1Down is false
+                    player1Down=false;
+                }
+                if (event.keyCode === 87) {//if "w" button is released then player1Up is false
+                    player1Up=false;
+                } 
+                if (event.keyCode === 38) {//if UP button is released then player2Up is false
+                    player2Up=false;
+                }
+                if(event.keyCode === 40) {//if DOWN button is released then player2Down is false
+                    player2Down=false;    
+                }
+            };
+
+            function resetBall(){
+                //if the ball goes out then x value is 200 and y value is a random number between 30 and 370
+                x=200;
+                y=Math.floor(Math.random() * (370 - 30 + 1)) + 30; // variabiable y equals int random between 30 and 370
+            };
+
+            // rect function with same parameters as in Khan Academy pjs    
+            function rect(x, y, width, height) {
+                ctx.beginPath();
+                ctx.rect(x, y, width, height);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // ellipse function with same parameters as in Khan Academy pjs    
+            function ellipse(x, y, width, height) {
+                ctx.beginPath();
+                ctx.arc(x, y, 10, 0, Math.PI * 2, true);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // background function with same parameters as in Khan Academy pjs    
+            function background(r, g, b) {
+                fill(r, g, b);
+                rect(0, 0, ctx.canvas.width, ctx.canvas.height);    
+            }
+
+            // text function with same parameters as in Khan Academy pjs
+            function text(string, x, y) {
+                ctx.font = "14px Arial";
+                ctx.fillText(string, x, y);
+            }   
+
+            // fill function with same parameters as in Khan Academy pjs    
+            function fill(r, g, b) {
+               // convert each component to 2-digit hex and combine
+               hexColor = "#" + r.toString(16).padStart(2, "0") + g.toString(16).padStart(2, "0") + b.toString(16).padStart(2, "0");
+               ctx.fillStyle = hexColor;
+            }            
+
+            //main game loop reusing Khan Academy pjs funciton names as much as possible
+            function draw() {
+                background(4, 0, 255);
+                fill(9, 10, 9);
+                ellipse(x,y,20,20);
+                fill(19, 242, 242);
+
+                //output scoreboard
+                text("Player 1: "+player1Score+"\t\t\t\t\t\t\t\tPlayer 2: "                      +player2Score, 118,15);
+                //if game is paused then display the text below
+                if(gamePaused){
+                    text("Press Space To Continue", 122,200);    
+                }    
+                if(player1Down){//if the player1Down is true, then add 5 pixels to Pong1 in y-axis
+                    yPositionPlayer1+=5;
+                }
+                else if(player1Up){//if the player1Up is true, then subtract 5 pixals to Pong1 in y-axis
+                    yPositionPlayer1-=5;
+                }
+                if(player2Up){//if the player2Up is true, then subtract 5 pixals to Pong2 in y-axis
+                    yPositionPlayer2-=5;
+                }
+                else if(player2Down){//if the player2Down is true, then add 5 pixals to Pong2 in y-axis
+                    yPositionPlayer2+=5;
+                }
+                //draw 2 rectangles(Pongs)
+                rect(0, yPositionPlayer1, 10, 80);
+                rect(390, yPositionPlayer2, 10, 80);
+                //add xSpeed and ySpeed to the current x and y positions of the elipse
+                x=x+xSpeed;
+                y=y+ySpeed;
+                //if the ball hits pong2 then bounce off
+                if(x>390&&(y<yPositionPlayer2+80)&&(y>yPositionPlayer2)){
+                    xSpeed=-xSpeed;
+                }
+                //if the ball hits pong 1 then bounce off
+                if(x<10&&(y<yPositionPlayer1+80)&&(y>yPositionPlayer1)){
+                    xSpeed=-xSpeed;
+                }
+                //if the ball goes out on the left side
+                if(x<10&&((y>yPositionPlayer1+80)||(y<yPositionPlayer1))){
+                        //stop movement of the ball
+                        xSpeed=0;
+                        ySpeed=0;
+                        player2Score++;
+                        gamePaused=true;//set gamePaused equal to true
+                        resetBall();//call reset ball method
+                    }
+                    //if the ball goes out on the right side
+                    if(x>410&&((y>yPositionPlayer2+80)||(y<yPositionPlayer2))){
+                        player1Score++;
+                        //stop movement of the ball
+                        xSpeed=0;
+                        ySpeed=0;
+                        gamePaused=true;//set gamePaused equal to true
+                        resetBall();//call reset ball method
+                    }
+                //if ball hits the bottom of the playing field then bounce off    
+                if(y>390){
+                    ySpeed=-ySpeed;
+                }
+                //if ball hits the top of the playing field then bounce off
+                if(y<10){
+                ySpeed=-ySpeed;
+                }
+                //don't let any of the pongs go out of the playing field
+                if(yPositionPlayer2>330){
+                    yPositionPlayer2=330;
+                }
+                if(yPositionPlayer2<0){
+                    yPositionPlayer2=1;    
+                }    
+                if(yPositionPlayer1>330){
+                    yPositionPlayer1=330;
+                }
+                if(yPositionPlayer1<0){
+                    yPositionPlayer1=1;    
+                }
+                requestAnimationFrame(draw);
+
+            };
+
+            //force the title
+            document.title = "Bounce Ball - Game by Luca"; 
+            //give the canvas focus
+            document.getElementById('canvas').focus();
+            //call the init function when the page loads
+            window.addEventListener("load", init, false);
+            //call the key press functions when keys are pressed
+            window.addEventListener("keydown", keyPressed, false);
+            window.addEventListener("keyup", keyReleased, false);
+    </script>
+</body>
+</html>
